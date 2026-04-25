@@ -94,6 +94,7 @@ export default function App() {
   const [isSaved, setIsSaved] = useState(false);
   const [justAddedYear, setJustAddedYear] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [expandedSections, setExpandedSections] = useState({ ativo: true, passivo: true });
 
   useEffect(() => {
@@ -854,6 +855,130 @@ export default function App() {
                       <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                       <XAxis dataKey="year" axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 12 }} dy={10} />
                       <YAxis axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 12 }} tickFormatter={(value) => formatCurrency(value).replace('R$', '')} />
+                      <Tooltip 
+                        contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)', padding: '12px' }}
+                        labelStyle={{ fontWeight: 'bold', color: '#1e293b', marginBottom: '8px' }}
+                        labelFormatter={(year) => `Ano: ${year}`}
+                        formatter={(value: number) => [formatCurrency(value), 'Patrimônio Líquido']}
+                      />
+                      <Legend verticalAlign="top" height={36} iconType="circle" />
+                      <Line type="monotone" dataKey="equity" name="Patrimônio Líquido" stroke="#10b981" strokeWidth={3} dot={{ r: 4, strokeWidth: 2, fill: '#fff' }} activeDot={{ r: 6, strokeWidth: 0 }} />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+
+              <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+                <h3 className="font-bold text-slate-800 mb-6 flex items-center gap-2">
+                  <DollarSign className="w-5 h-5 text-emerald-600" />
+                  Evolução do Patrimônio Líquido (PL)
+                </h3>
+                <div className="h-80 w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={allRatios} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                      <XAxis dataKey="year" axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 12 }} dy={10} />
+                      <YAxis axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 12 }} tickFormatter={(value) => formatCurrency(value).replace('R      </main>
+
+      <footer className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12 border-t border-slate-200 mt-12">
+        <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+          <div className="flex items-center gap-3">
+            <div className="bg-slate-100 p-2 rounded-lg">
+              <Code className="w-5 h-5 text-slate-600" />
+            </div>
+            <div className="text-left">
+              <p className="text-sm font-bold text-slate-700">Eng. Software Rigonato</p>
+              <p className="text-xs text-slate-400">Desenvolvimento de Sistemas Especialistas</p>
+            </div>
+          </div>
+          <p className="text-slate-400 text-sm font-medium">
+            Cálculo de Índices Financeiros &copy; 2026 - Ferramenta de Apoio à Decisão Contábil
+          </p>
+        </div>
+      </footer>
+    </div>
+  );
+}
+
+function DetailRow({ label, value, formula, calculation, highlight }: { label: string; value: string; formula: string; calculation: string; highlight?: 'success' | 'danger' }) {
+  return (
+    <div className="flex flex-col p-4 rounded-xl bg-slate-50 border border-slate-100 hover:border-blue-200 transition-colors">
+      <div className="flex justify-between items-start mb-2">
+        <div>
+          <div className="text-sm font-bold text-slate-700">{label}</div>
+          <div className="text-[10px] text-blue-600 font-mono font-bold uppercase tracking-wider">{formula}</div>
+        </div>
+        <div className={cn(
+          "text-xl font-black",
+          highlight === 'success' ? "text-emerald-600" : highlight === 'danger' ? "text-red-600" : "text-slate-900"
+        )}>
+          {value}
+        </div>
+      </div>
+      <div className="text-[11px] text-slate-400 font-mono bg-white/50 p-1.5 rounded border border-slate-100 overflow-x-auto whitespace-nowrap">
+        {calculation}
+      </div>
+    </div>
+  );
+}
+
+function InputField({ label, value, onChange }: { label: string; value: number; onChange: (v: string) => void }) {
+  const formattedPreview = value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+  
+  return (
+    <div className="space-y-2">
+      <div className="flex justify-between items-center">
+        <label className="text-sm font-medium text-slate-600">{label}</label>
+        {value > 0 && (
+          <span className="text-[10px] font-bold text-blue-500 bg-blue-50 px-2 py-0.5 rounded-full">
+            {formattedPreview}
+          </span>
+        )}
+      </div>
+      <div className="relative">
+        <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-xs">
+          R$
+        </div>
+        <input
+          type="number"
+          step="0.01"
+          value={value || ''}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder="0,00"
+          className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all text-slate-800 font-medium"
+        />
+      </div>
+    </div>
+  );
+}
+
+function RatioCard({ title, value, formula, calculation, status }: { title: string; value: string; formula: string; calculation: string; status: 'good' | 'warning' | 'neutral' }) {
+  const statusColors = {
+    good: "text-emerald-600 bg-emerald-50 border-emerald-100",
+    warning: "text-amber-600 bg-amber-50 border-amber-100",
+    neutral: "text-blue-600 bg-blue-50 border-blue-100"
+  };
+
+  return (
+    <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+      <div className="flex justify-between items-start mb-4">
+        <div>
+          <h4 className="text-sm font-bold text-slate-500 uppercase tracking-wider">{title}</h4>
+          <div className="text-[10px] font-mono font-bold text-blue-600 mt-1">{formula}</div>
+        </div>
+        <div className={cn("px-2 py-1 rounded-md text-[10px] font-bold uppercase shrink-0", statusColors[status])}>
+          {status === 'good' ? 'Saudável' : status === 'warning' ? 'Atenção' : 'Indicador'}
+        </div>
+      </div>
+      <div className="text-4xl font-black text-slate-900 mb-4">{value}</div>
+      <div className="text-[11px] text-slate-400 font-mono bg-slate-50 p-2 rounded-lg border border-slate-100 overflow-x-auto whitespace-nowrap">
+        {calculation}
+      </div>
+    </div>
+  );
+}
+
+, '')} />
                       <Tooltip 
                         contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)', padding: '12px' }}
                         labelStyle={{ fontWeight: 'bold', color: '#1e293b', marginBottom: '8px' }}
